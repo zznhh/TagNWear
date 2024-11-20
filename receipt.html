@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f2f4f7;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+        .container:hover {
+            transform: scale(1.02);
+        }
+        h2 {
+            text-align: center;
+            color: #0d100ee1;
+            font-size: 24px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        #receiptSection {
+            margin-bottom: 20px;
+        }
+        #items-purchased {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        li {
+            background-color: #fafafa;
+            border-left: 5px solid #0d100ee1;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .total-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .discount {
+            color: #ff5722;
+            text-decoration: line-through;
+            font-size: 18px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #777;
+        }
+        .qr-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .qr-container img {
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .success-message {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .success-message.show {
+            display: block;
+            opacity: 1;
+        }
+        .discount-amount {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: block;
+            margin: 20px auto;
+            width: 200px;
+        }
+        .btn:hover {
+            background-color: #388e3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Payment Receipt</h2>
+        <div id="receiptSection">
+            <p>Date: <strong id="receipt-date"></strong></p>
+            <p>Payment Method: <strong id="payment-method"></strong></p>
+            <p>Items Purchased:</p>
+            <ul id="items-purchased"></ul>
+            <p class="total-price">Discount 5%: <span class="discount"><strong id="total-before-discount"></strong></span> - <strong id="discount" class="discount-amount"></strong></p>
+            <p class="total-price">Final Price: <strong id="total-price"></strong></p>
+        </div>
+        <div id="qrCode" class="qr-container"></div>
+        <div class="footer">
+            <p>Thank you for your purchase!</p>
+        </div>
+        <div class="success-message" id="paymentSuccessMsg">Payment Successful!</div>
+    </div>
+
+    <script>
+        // Retrieve payment data from localStorage
+        const qrData = JSON.parse(localStorage.getItem('paymentData'));
+
+        // Populate receipt details
+        document.getElementById('receipt-date').textContent = qrData.date;
+        document.getElementById('payment-method').textContent = qrData.paymentMethod;
+
+        let totalBeforeDiscount = 0; // Initialize total before discount
+        const itemsPurchased = document.getElementById('items-purchased');
+        qrData.items.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = `${item.name}: <span class="discount">RM${item.originalPrice}</span> - RM${item.finalPrice} (${item.discount}%) (Quantity: ${item.quantity})`;
+            itemsPurchased.appendChild(li);
+            totalBeforeDiscount += item.originalPrice * item.quantity; // Calculate total before discount
+        });
+
+        document.getElementById('total-price').textContent = `RM${qrData.totalPrice}`;
+        document.getElementById('total-before-discount').textContent = `RM${totalBeforeDiscount}`; // Display total before discount
+        document.getElementById('discount').textContent = `RM${(totalBeforeDiscount - qrData.totalPrice)}`; // Display discount
+
+        // Generate QR code with JSON data
+        $('#qrCode').qrcode({
+            text: JSON.stringify(qrData),
+            width: 256,
+            height: 256,
+        });
+
+        // Show success message with smooth fade-in effect
+        const paymentSuccessMsg = document.getElementById('paymentSuccessMsg');
+        setTimeout(() => {
+            paymentSuccessMsg.classList.add('show');
+        }, 500); // Delay to show after content is populated
+
+        // Close receipt action
+        document.getElementById('closeReceiptBtn').addEventListener('click', () => {
+            window.close(); // Close the current window (if it's a standalone page)
+        });
+    </script>
+</body>
+</html>
