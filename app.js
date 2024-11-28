@@ -13,7 +13,7 @@ window.onload = function() {
     // Generate initial content
     const itemContainer = document.getElementById('item-details');
     let content = `
-        <center><h2>TapNWear Shopping Cart</h2></center>
+        <center><h2>TagNWear Shopping Cart</h2></center>
         <div class="item-selection">
             <select id="item-selector">
                 <option value="">Select an item...</option>
